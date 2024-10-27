@@ -19,10 +19,4 @@ func main() {
 		fmt.Println(text)
 		return
 	}
-	image := clipboard.Read(clipboard.FmtImage)
-	fmt.Println(image)
-	if image != nil {
-		fmt.Println("You have an image")
-		return
-	}
 }
