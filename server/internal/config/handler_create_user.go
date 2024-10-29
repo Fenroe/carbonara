@@ -3,12 +3,10 @@ package config
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/Fenroe/carbonarapi/internal/auth"
 	"github.com/Fenroe/carbonarapi/internal/database"
 	"github.com/Fenroe/carbonarapi/internal/util"
-	"github.com/google/uuid"
 )
 
 func (cfg *Config) HandlerCreateUser(w http.ResponseWriter, req *http.Request) {
@@ -17,13 +15,6 @@ func (cfg *Config) HandlerCreateUser(w http.ResponseWriter, req *http.Request) {
 		Password string `json:"password"`
 	}
 
-	type responseUser struct {
-		ID         uuid.UUID `json:"id"`
-		Email      string    `json:"email"`
-		CreatedAt  time.Time `json:"created_at"`
-		UpdatedAt  time.Time `json:"updated_at"`
-		LastSeenAt time.Time `json:"last_seen_at"`
-	}
 	type response struct {
 		User responseUser `json:"user"`
 	}
@@ -44,7 +35,7 @@ func (cfg *Config) HandlerCreateUser(w http.ResponseWriter, req *http.Request) {
 		Email:          body.Email,
 		HashedPassword: hashedPassword,
 	}
-	user, err := cfg.Queries.CreateUser(req.Context(), queryParams)
+	user, err := cfg.DB.CreateUser(req.Context(), queryParams)
 	if err != nil {
 		util.RespondWithError(w, http.StatusInternalServerError, "couldn't create user", err)
 		return

@@ -18,7 +18,17 @@ func main() {
 	godotenv.Load()
 	// Get port and db url
 	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT env variable not set")
+	}
 	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL env variable not set")
+	}
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET env variable not set")
+	}
 	// Connect to database. If it fails then quit and log the error
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -26,13 +36,19 @@ func main() {
 	}
 	// Initialize config struct
 	apiConfig := config.Config{
-		Greeting: "Hi Banana!",
-		Queries:  database.New(db),
+		Greeting:  "Hi Banana!",
+		DB:        database.New(db),
+		JWTSecret: jwtSecret,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, apiConfig.Greeting)
 	})
+	// Handlers
+	mux.HandleFunc("POST /api/users", apiConfig.HandlerCreateUser)
+	mux.HandleFunc("POST /api/login", apiConfig.HandlerLogin)
+	mux.HandleFunc("POST /api/refresh", apiConfig.HandlerRefresh)
+	mux.HandleFunc("POST /api/revoke", apiConfig.HandlerRevoke)
 	// Initialize server
 	server := http.Server{
 		Handler: mux,

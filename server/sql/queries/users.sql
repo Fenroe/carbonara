@@ -10,3 +10,13 @@ VALUES (
 )
 -- don't return hashed_password
 RETURNING id, email, created_at, updated_at, last_seen_at;
+
+-- name: GetUserByEmail :one
+SELECT * FROM users
+WHERE email=$1;
+
+-- name: UpdateUserLastSeenAt :one
+UPDATE users
+SET last_seen_at=NOW(),updated_at=NOW()
+WHERE id=$1
+RETURNING *;
