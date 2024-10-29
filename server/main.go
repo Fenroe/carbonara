@@ -49,6 +49,9 @@ func main() {
 	mux.HandleFunc("POST /api/login", apiConfig.HandlerLogin)
 	mux.HandleFunc("POST /api/refresh", apiConfig.HandlerRefresh)
 	mux.HandleFunc("POST /api/revoke", apiConfig.HandlerRevoke)
+	mux.HandleFunc("POST /api/clips", apiConfig.HandlerCreateClip)
+	mux.HandleFunc("GET /api/clips", apiConfig.HandlerGetClipsByUser)
+
 	// Initialize server
 	server := http.Server{
 		Handler: mux,

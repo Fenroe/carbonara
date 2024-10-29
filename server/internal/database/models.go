@@ -10,6 +10,14 @@ import (
 	"github.com/google/uuid"
 )
 
+type Clip struct {
+	ID        uuid.UUID
+	Content   string
+	UserID    uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type RefreshToken struct {
 	Token     string
 	UserID    uuid.UUID
