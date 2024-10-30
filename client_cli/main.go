@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 
+	"github.com/joho/godotenv"
 	"golang.design/x/clipboard"
 )
 
 func main() {
-	 
+	godotenv.Load()
 	fmt.Println("Hello, World!")
 	fmt.Println("Reading your clipboard...")
 	err := clipboard.Init()
