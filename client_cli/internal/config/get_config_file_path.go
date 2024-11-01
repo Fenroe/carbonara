@@ -1,16 +1,18 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 func getConfigFilePath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	configDir, err := os.UserConfigDir() // Returns ~/.config or equivalent
 	if err != nil {
-		return "", errors.New("couldn't find home directory")
+		fmt.Println("Failed to get config directory:", err)
+		return "", err
 	}
-	path := fmt.Sprintf("%v.carbonaraconfig.json", homeDir)
+	// Define the path for your app's config file
+	path := filepath.Join(configDir, "carbonara", "config.json")
 	return path, nil
 }

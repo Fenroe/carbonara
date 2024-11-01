@@ -1,8 +1,9 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"os"
+	"path/filepath"
 )
 
 /*
@@ -15,10 +16,18 @@ func makeConfigFile() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	_, err = os.Create(path)
-	if err != nil {
-		return Config{}, errors.New("couldn't create config file")
+	// Create the directory if it doesn't exist
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		fmt.Println("Failed to create config directory:", err)
+		return Config{}, err
 	}
+	// Now create or open the config file for writing
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		fmt.Println("Failed to open or create config file:", err)
+		return Config{}, err
+	}
+	defer file.Close()
 	cfg := Config{
 		AccessToken:  "",
 		RefreshToken: "",
