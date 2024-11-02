@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -12,11 +11,13 @@ import (
 
 	"github.com/Fenroe/carbonara/internal/config"
 	"github.com/joho/godotenv"
+	"golang.design/x/clipboard"
 )
 
 type state struct {
 	config config.Config
 	apiurl string
+	client *http.Client
 }
 
 type command struct {
@@ -39,26 +40,76 @@ func (c *commands) run(s *state, cmd command) error {
 	return c.handlers[cmd.name](s, cmd)
 }
 
-func handlerRegister(s *state, cmd command) error {
+func refreshAccessToken(s *state) error {
+	type response struct {
+		AccessToken string `json:"access_token"`
+	}
+
+	url := fmt.Sprintf("%s/api/refresh", s.apiurl)
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return err
+	}
+	token := fmt.Sprintf("Bearer %v", s.config.RefreshToken)
+	req.Header.Set("Authorization", token)
+	res, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode == http.StatusUnauthorized {
+		// Access Token has expired, user must re-authenticate
+		s.config.SetCredentials("", "")
+		fmt.Println("Please log back in")
+		return nil
+	}
+	defer res.Body.Close()
+	var data response
+	decoder := json.NewDecoder(res.Body)
+	err = decoder.Decode(&data)
+	if err != nil {
+		return err
+	}
+	s.config.SetCredentials(data.AccessToken, s.config.RefreshToken)
+	return nil
+}
+
+func doPostRequest[T any](body T, url string) (*http.Response, error) {
+	jsonData, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return res, fmt.Errorf("unexpected HTTP status: %s", res.Status)
+	}
+	return res, err
+}
+
+func handlerRegister(s *state, _ command) error {
 	type request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
 	url := fmt.Sprintf("%s/api/users", s.apiurl)
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter your email")
-	email, err := reader.ReadString('\n')
+	email, err := readEmail("Enter your email")
 	if err != nil {
-		return errors.New("couldn't get email")
+		return err
 	}
-	fmt.Print("Choose a password")
-	password, err := reader.ReadString('\n')
+	password, err := readPassword("Choose a password")
 	if err != nil {
-		return errors.New("couldn't get password")
+		return err
 	}
-	fmt.Print("Confirm your password")
-	confirmPassword, err := reader.ReadString('\n')
+	confirmPassword, err := readPassword("Confirm your password")
 	if err != nil {
 		return errors.New("couldn't confirm password")
 	}
@@ -69,22 +120,12 @@ func handlerRegister(s *state, cmd command) error {
 		Email:    email,
 		Password: password,
 	}
-	jsonData, err := json.Marshal(body)
-	if err != nil {
-		return errors.New("couldn't marshal json")
-	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return errors.New("couldn't create HTTP request")
-	}
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	res, err := client.Do(req)
+	res, err := doPostRequest(body, url)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
-	fmt.Print("Account created successfully")
+	fmt.Println("Account created successfully")
 	return nil
 }
 
@@ -100,31 +141,19 @@ func handlerLogin(s *state, _ command) error {
 	}
 
 	url := fmt.Sprintf("%s/api/login", s.apiurl)
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter your email")
-	email, err := reader.ReadString('\n')
+	email, err := readEmail("Enter your email")
 	if err != nil {
-		return errors.New("couldn't get email")
+		return err
 	}
-	password, err := reader.ReadString('\n')
+	password, err := readPassword("Choose a password")
 	if err != nil {
-		return errors.New("couldn't get password")
+		return err
 	}
 	body := request{
 		Email:    email,
 		Password: password,
 	}
-	jsonData, err := json.Marshal(body)
-	if err != nil {
-		return errors.New("couldn't marshal json")
-	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return errors.New("couldn't create HTTP request")
-	}
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	res, err := client.Do(req)
+	res, err := doPostRequest(body, url)
 	if err != nil {
 		return err
 	}
@@ -137,6 +166,79 @@ func handlerLogin(s *state, _ command) error {
 	}
 	fmt.Println("Log in successful")
 	return s.config.SetCredentials(userData.AccessToken, userData.RefreshToken)
+}
+
+func handlerLogout(s *state, _ command) error {
+	s.config.SetCredentials("", "")
+	return nil
+}
+
+func handlerSend(s *state, _ command) error {
+	type request struct {
+		Content string `json:"content"`
+	}
+
+	url := fmt.Sprintf("%s/api/clips", s.apiurl)
+	err := clipboard.Init()
+	if err != nil {
+		return err
+	}
+	content := string(clipboard.Read(clipboard.FmtText))
+	body := request{
+		Content: content,
+	}
+	jsonData, err := json.Marshal(body)
+	if err != nil {
+		return errors.New("couldn't marshal json")
+	}
+
+	// Define a function to send the request
+	sendRequest := func(token string) (*http.Response, error) {
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+		if err != nil {
+			return nil, errors.New("couldn't create HTTP request")
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", token))
+
+		client := &http.Client{}
+		return client.Do(req)
+	}
+
+	// First attempt with the current access token
+	res, err := sendRequest(s.config.AccessToken)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	// Check if the token needs to be refreshed
+	if res.StatusCode == http.StatusUnauthorized {
+		// Attempt to refresh the access token
+		err = refreshAccessToken(s)
+		if err != nil {
+			return err // Return if unable to refresh
+		}
+
+		// Retry with the new access token
+		res, err = sendRequest(s.config.AccessToken)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+
+		// Check if the second attempt is also unauthorized
+		if res.StatusCode == http.StatusUnauthorized {
+			return errors.New("unauthorized: access token is invalid after refresh attempt")
+		}
+	}
+
+	fmt.Println("Your clipboard data has been sent")
+	return nil
+}
+
+func handlerSync(_ *state, _ command) error {
+	return nil
 }
 
 func main() {
@@ -152,6 +254,7 @@ func main() {
 	appState := state{
 		config: cfg,
 		apiurl: cfg.GetAPIURL(),
+		client: &http.Client{},
 	}
 	handlers := make(map[string]func(*state, command) error)
 	appCommands := commands{
@@ -159,6 +262,9 @@ func main() {
 	}
 	appCommands.register("register", handlerRegister)
 	appCommands.register("login", handlerLogin)
+	appCommands.register("send", handlerSend)
+	appCommands.register("sync", handlerSync)
+	appCommands.register("logout", handlerLogout)
 	cliArgs := os.Args
 	if len(cliArgs) < 2 {
 		fmt.Println("type 'help' for a list of commands")
@@ -176,12 +282,3 @@ func main() {
 		os.Exit(0)
 	}
 }
-
-/*
-	err = clipboard.Init()
-	text := string(clipboard.Read(clipboard.FmtText))
-	if text != "" {
-		fmt.Println(text)
-		return
-	}
-*/
