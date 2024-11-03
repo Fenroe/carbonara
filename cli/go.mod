@@ -1,4 +1,4 @@
-module github.com/Fenroe/carbonara
+module github.com/Fenroe/carbonara/cli
 
 go 1.23.1
 

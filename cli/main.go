@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Fenroe/carbonara/internal/config"
+	"github.com/Fenroe/carbonara/cli/internal/config"
 	"github.com/joho/godotenv"
 )
 

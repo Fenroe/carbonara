@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/Fenroe/carbonara/internal/config"
+	"github.com/Fenroe/carbonara/cli/internal/config"
 )
 
 type state struct {
