@@ -9,5 +9,5 @@ func (cfg *Config) GetAPIURL() string {
 	if devURL != "" {
 		return devURL
 	}
-	return ""
+	return "https://carbonarapi.fenmain.com"
 }
