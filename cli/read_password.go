@@ -9,7 +9,7 @@ import (
 )
 
 func readPassword(prompt string) (string, error) {
-	fmt.Print(prompt)
+	fmt.Println(prompt)
 	// Switch terminal into raw mode
 	oldState, err := term.MakeRaw(int(syscall.Stdin))
 	if err != nil {
