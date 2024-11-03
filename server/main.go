@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Fenroe/carbonarapi/internal/config"
 	"github.com/Fenroe/carbonarapi/internal/database"
@@ -15,7 +16,10 @@ import (
 
 func main() {
 	// Export variables in .env file
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Get port and db url
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -54,8 +58,9 @@ func main() {
 
 	// Initialize server
 	server := http.Server{
-		Handler: mux,
-		Addr:    ":" + port,
+		Handler:           mux,
+		Addr:              ":" + port,
+		ReadHeaderTimeout: time.Duration(5) * time.Second,
 	}
 	// Feedback log
 	fmt.Printf("Starting server on %s\n", server.Addr)
