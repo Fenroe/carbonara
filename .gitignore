@@ -1,3 +1,4 @@
 .env
-carbonara
-carbonarapi
+# binaries
+cli/carbonara
+server/carbonarapi

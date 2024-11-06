@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"database/sql"
@@ -46,7 +46,7 @@ func dbTestSetup() (queries *database.Queries, cleanup func()) {
 	if err != nil {
 		log.Fatalf("Could not resolve absolute path for migrations: %s", err)
 	}
-	goose.Up(db, "../../../sql/schema")
+	goose.Up(db, "../../sql/schema")
 	// configure db to work with sqlc queries
 	queries = database.New(db)
 	// as of go1.15 testing.M returns the exit code of m.Run(), so it is safe to use defer here
