@@ -1,26 +1,30 @@
-package main
+package handlers
 
 import (
 	"errors"
 	"fmt"
+
+	"github.com/Fenroe/carbonara/cli/internal/commands"
+	"github.com/Fenroe/carbonara/cli/internal/state"
+	"github.com/Fenroe/carbonara/cli/internal/util"
 )
 
-func handlerRegister(s *state, _ command) error {
+func HandlerRegister(s *state.State, _ commands.Command) error {
 	type request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
-	url := fmt.Sprintf("%s/api/users", s.apiurl)
-	email, err := readEmail("Enter your email")
+	url := fmt.Sprintf("%s/api/users", s.APIURL)
+	email, err := util.ReadEmail("Enter your email")
 	if err != nil {
 		return err
 	}
-	password, err := readPassword("Choose a password")
+	password, err := util.ReadPassword("Choose a password")
 	if err != nil {
 		return err
 	}
-	confirmPassword, err := readPassword("Confirm your password")
+	confirmPassword, err := util.ReadPassword("Confirm your password")
 	if err != nil {
 		return errors.New("couldn't confirm password")
 	}
@@ -31,7 +35,7 @@ func handlerRegister(s *state, _ command) error {
 		Email:    email,
 		Password: password,
 	}
-	res, err := doPostRequest(s, body, url)
+	res, err := util.DoPostRequest(s, body, url)
 	if err != nil {
 		return err
 	}

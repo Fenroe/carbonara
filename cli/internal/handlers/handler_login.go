@@ -1,11 +1,15 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/Fenroe/carbonara/cli/internal/commands"
+	"github.com/Fenroe/carbonara/cli/internal/state"
+	"github.com/Fenroe/carbonara/cli/internal/util"
 )
 
-func handlerLogin(s *state, _ command) error {
+func HandlerLogin(s *state.State, _ commands.Command) error {
 	type request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -16,12 +20,12 @@ func handlerLogin(s *state, _ command) error {
 		RefreshToken string `json:"refresh_token"`
 	}
 
-	url := fmt.Sprintf("%s/api/login", s.apiurl)
-	email, err := readEmail("Enter your email")
+	url := fmt.Sprintf("%s/api/login", s.APIURL)
+	email, err := util.ReadEmail("Enter your email")
 	if err != nil {
 		return err
 	}
-	password, err := readPassword("Choose a password")
+	password, err := util.ReadPassword("Choose a password")
 	if err != nil {
 		return err
 	}
@@ -29,7 +33,7 @@ func handlerLogin(s *state, _ command) error {
 		Email:    email,
 		Password: password,
 	}
-	res, err := doPostRequest(s, body, url)
+	res, err := util.DoPostRequest(s, body, url)
 	if err != nil {
 		return err
 	}
@@ -41,5 +45,5 @@ func handlerLogin(s *state, _ command) error {
 		return err
 	}
 	fmt.Println("Log in successful")
-	return s.config.SetCredentials(userData.AccessToken, userData.RefreshToken)
+	return s.Config.SetCredentials(userData.AccessToken, userData.RefreshToken)
 }

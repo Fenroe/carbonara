@@ -1,13 +1,15 @@
-package main
+package auth
 
 import (
 	"errors"
 	"net/http"
+
+	"github.com/Fenroe/carbonara/cli/internal/state"
 )
 
-func withAuth(s *state, handler func(string) (*http.Response, error)) (*http.Response, error) {
+func WithAuth(s *state.State, handler func(string) (*http.Response, error)) (*http.Response, error) {
 	// Initial request with the current access token
-	res, err := handler(s.config.AccessToken)
+	res, err := handler(s.Config.AccessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +23,7 @@ func withAuth(s *state, handler func(string) (*http.Response, error)) (*http.Res
 		}
 
 		// Retry the request with the new access token
-		res, err = handler(s.config.AccessToken)
+		res, err = handler(s.Config.AccessToken)
 		if err != nil {
 			return nil, err
 		}

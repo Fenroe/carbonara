@@ -1,13 +1,15 @@
-package main
+package util
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Fenroe/carbonara/cli/internal/state"
 )
 
-func doPostRequest[T any](s *state, body T, url string) (*http.Response, error) {
+func DoPostRequest[T any](s *state.State, body T, url string) (*http.Response, error) {
 	jsonData, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -17,7 +19,7 @@ func doPostRequest[T any](s *state, body T, url string) (*http.Response, error) 
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	res, err := s.client.Do(req)
+	res, err := s.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}

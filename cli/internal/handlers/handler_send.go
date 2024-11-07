@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"bytes"
@@ -7,15 +7,18 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Fenroe/carbonara/cli/internal/auth"
+	"github.com/Fenroe/carbonara/cli/internal/commands"
+	"github.com/Fenroe/carbonara/cli/internal/state"
 	"golang.design/x/clipboard"
 )
 
-func handlerSend(s *state, _ command) error {
+func HandlerSend(s *state.State, _ commands.Command) error {
 	type request struct {
 		Content string `json:"content"`
 	}
 
-	url := fmt.Sprintf("%s/api/clips", s.apiurl)
+	url := fmt.Sprintf("%s/api/clips", s.APIURL)
 	err := clipboard.Init()
 	if err != nil {
 		return err
@@ -43,11 +46,11 @@ func handlerSend(s *state, _ command) error {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", token))
 
-		return s.client.Do(req)
+		return s.Client.Do(req)
 	}
 
 	// Use the withAuth middleware to handle authentication and retries
-	res, err := withAuth(s, handler)
+	res, err := auth.WithAuth(s, handler)
 	if err != nil {
 		return err
 	}

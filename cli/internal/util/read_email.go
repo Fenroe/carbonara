@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func readEmail(prompt string) (string, error) {
+func ReadEmail(prompt string) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println(prompt)
 	email, err := reader.ReadString('\n')

@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"golang.org/x/term"
 )
 
-func readPassword(prompt string) (string, error) {
+func ReadPassword(prompt string) (string, error) {
 	fmt.Println(prompt)
 	// Switch terminal into raw mode
 	oldState, err := term.MakeRaw(int(syscall.Stdin))
