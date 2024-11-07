@@ -48,6 +48,8 @@ const extendRefreshToken = `-- name: ExtendRefreshToken :one
 UPDATE refresh_tokens
 SET expires_at=$1, updated_at=NOW()
 WHERE token=$2
+AND revoked_at IS NULL
+AND expires_at > NOW()
 RETURNING token, user_id, created_at, updated_at, expires_at, revoked_at
 `
 
@@ -96,6 +98,8 @@ const revokeRefreshToken = `-- name: RevokeRefreshToken :one
 UPDATE refresh_tokens
 SET revoked_at=NOW(), updated_at=NOW()
 WHERE token=$1
+AND revoked_at IS NULL
+AND expires_at > NOW()
 RETURNING token, user_id, created_at, updated_at, expires_at, revoked_at
 `
 

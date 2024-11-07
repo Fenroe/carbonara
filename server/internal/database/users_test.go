@@ -1,18 +1,16 @@
-package test
+package database
 
 import (
 	"context"
 	"testing"
-
-	"github.com/Fenroe/carbonarapi/internal/database"
 )
 
 func TestUsers(t *testing.T) {
 	// setup and cleanup
-	queries, cleanup := dbTestSetup()
+	queries, cleanup := DBTestSetup()
 	defer cleanup()
 	// create user
-	createUserParams := database.CreateUserParams{
+	createUserParams := CreateUserParams{
 		Email:          "testing@carbonara.com",
 		HashedPassword: "myhashedpassword",
 	}

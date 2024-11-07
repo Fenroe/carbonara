@@ -1,17 +1,16 @@
-package test
+package database
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
 
-	"github.com/Fenroe/carbonarapi/internal/database"
 	_ "github.com/lib/pq"
 	"github.com/ory/dockertest"
 	"github.com/pressly/goose"
 )
 
-func dbTestSetup() (queries *database.Queries, cleanup func()) {
+func DBTestSetup() (queries *Queries, cleanup func()) {
 	var db *sql.DB
 	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
 	pool, err := dockertest.NewPool("")
@@ -46,9 +45,12 @@ func dbTestSetup() (queries *database.Queries, cleanup func()) {
 	if err != nil {
 		log.Fatalf("Could not resolve absolute path for migrations: %s", err)
 	}
-	goose.Up(db, "../../sql/schema")
+	err = goose.Up(db, "../../sql/schema")
+	if err != nil {
+		log.Fatalf("Could not run migrations: %s", err)
+	}
 	// configure db to work with sqlc queries
-	queries = database.New(db)
+	queries = New(db)
 	// as of go1.15 testing.M returns the exit code of m.Run(), so it is safe to use defer here
 	cleanup = func() {
 		if err := pool.Purge(resource); err != nil {
