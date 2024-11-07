@@ -25,7 +25,7 @@ jobs:
           push: true
           tags: user/app:latest
   migrate:
-    runs_on: ubuntu-latest
+    runs-on: ubuntu-latest
     env:
       DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
     steps:
@@ -42,22 +42,22 @@ jobs:
 
       - name: Run migrations
         run: cd server && ./scripts/gooseup.sh
-    deploy:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
-        
-        - name: SSH into server
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.VPS_IP }}
-            username: ${{ secrets.VPS_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            port: 22
-            script: |
-              docker stop carbonarapi
-              docker stop carbonara-db
-              docker pull fenroe/carbonarapi:latest
-              docker start carbonara-db
-              docker start carbonarapi
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: SSH into server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            docker stop carbonarapi
+            docker stop carbonara-db
+            docker pull fenroe/carbonarapi:latest
+            docker start carbonara-db
+            docker start carbonarapi
