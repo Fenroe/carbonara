@@ -19,7 +19,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Build and push
+
+      - name: Build binary
+        run: cd server && go build ./cmd/carbonarapi
+
+      - name: Build docker image and push
         uses: docker/build-push-action@v6
         with:
           context: "{{defaultContext}}:server"
