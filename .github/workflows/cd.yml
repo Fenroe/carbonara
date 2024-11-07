@@ -31,15 +31,15 @@ jobs:
       - name: Build binary
         run: cd server && go build ./cmd/carbonarapi
 
-      - name: Move binary to root
-        run: mv server/carbonarapi carbonarapi
-
-      - name: Move Dockerfile to root
-        run: mv server/Dockerfile Dockerfile
+      - name: Move everything to root
+        run: |
+          mv server/Dockerfile ./Dockerfile
+          mv server/carbonarapi ./carbonarapi
 
       - name: Build docker image and push
         uses: docker/build-push-action@v6
         with:
+          context: .
           push: true
           tags: user/app:latest
   migrate:
