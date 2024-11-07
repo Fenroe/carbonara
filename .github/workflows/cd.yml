@@ -22,10 +22,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./server/
+          context: "{{defaultContext}}:server"
           push: true
           tags: user/app:latest
-          file: ./server/Dockerfile
   migrate:
     runs-on: ubuntu-latest
     env:
