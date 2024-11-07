@@ -1,5 +1,9 @@
 .env
 node_modules
-# binaries
+node_modules
+dist
+out
+.DS_Store
+*.log*
 cli/carbonara
 server/carbonarapi
