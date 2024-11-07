@@ -22,8 +22,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          context: ./server
           push: true
           tags: user/app:latest
+          dockerfile: ./server/Dockerfile
   migrate:
     runs-on: ubuntu-latest
     env:
