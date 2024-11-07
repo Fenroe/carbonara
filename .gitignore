@@ -1,4 +1,5 @@
 .env
+node_modules
 # binaries
 cli/carbonara
 server/carbonarapi
