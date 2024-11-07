@@ -32,10 +32,10 @@ jobs:
         run: cd server && go build ./cmd/carbonarapi
 
       - name: Move binary to root
-        run: mv server/carbonarapi .
+        run: mv server/carbonarapi carbonarapi
 
       - name: Move Dockerfile to root
-        run: mv server/Dockerfile .
+        run: mv server/Dockerfile Dockerfile
 
       - name: Build docker image and push
         uses: docker/build-push-action@v6
