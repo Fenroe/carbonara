@@ -77,6 +77,7 @@ jobs:
           script: |
             docker stop carbonarapi
             docker stop carbonara-db
+            docker rm carbonarapi
             docker pull fenroe/carbonarapi:latest
             docker start carbonara-db
-            docker start carbonarapi
+            ./scripts/carbonarapi_init.sh

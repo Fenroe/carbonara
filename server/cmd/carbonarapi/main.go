@@ -18,7 +18,7 @@ func main() {
 	// Export variables in .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("Ignore this error if in production: %v\n", err)
 	}
 	// Get port and db url
 	port := os.Getenv("PORT")
